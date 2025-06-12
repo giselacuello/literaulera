@@ -18,10 +18,11 @@ public class Principal {
     private Scanner teclado = new Scanner(System.in);
 
     private LibroRepository libroRepositorio;
-//    private AutorRepository autorRepositorio;
+    private AutorRepository autorRepositorio;
 
-    public Principal(LibroRepository libroRepository) {
+    public Principal(LibroRepository libroRepository, AutorRepository autorRepository) {
         this.libroRepositorio = libroRepository;
+        this.autorRepositorio = autorRepository;
     }
 
 
