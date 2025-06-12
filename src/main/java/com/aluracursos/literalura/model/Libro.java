@@ -16,7 +16,7 @@ public class Libro {
     @Column(unique = true)
     private String titulo;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
     @JoinTable(
             name = "libro_autor",
             joinColumns = @JoinColumn(name = "libro_id"),

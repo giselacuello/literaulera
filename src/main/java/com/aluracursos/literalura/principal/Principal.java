@@ -1,15 +1,16 @@
 package com.aluracursos.literalura.principal;
 
-import com.aluracursos.literalura.model.Datos;
-import com.aluracursos.literalura.model.DatosLibro;
+import com.aluracursos.literalura.model.*;
 import com.aluracursos.literalura.repository.AutorRepository;
 import com.aluracursos.literalura.repository.LibroRepository;
 import com.aluracursos.literalura.service.ConsumoAPI;
 import com.aluracursos.literalura.service.ConvierteDatos;
 
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
     private static final String URL_BASE = "https://gutendex.com/books/";
@@ -53,9 +54,9 @@ public class Principal {
             switch (opcion) {
                 case 1:
                     buscarLibroPorTitulo();
-
                     break;
                 case 2:
+                    
                     break;
                 case 3:
                     break;
@@ -76,17 +77,77 @@ public class Principal {
         System.out.println("Ingrese el nombre del libro a buscar");
         var tituloLibro = teclado.nextLine();
         var json = consumoAPI.obtenerDatos(URL_BASE + "?search=" +tituloLibro.replace(" ", "+"));
+
+        // Manejo de JSON vacío o nulo
+        if (json == null || json.isEmpty() || json.equals("{}")) {
+            System.out.println("No se obtuvieron datos de la API. Verifique la conexión o el título.");
+            return;
+        }
+
         var datos = conversor.obtenerDatos(json, Datos.class);
+
+        // Verificar si la lista de resultados está vacía
+        if (datos == null || datos.resultados().isEmpty()) {
+            System.out.println("No se encontraron libros en la API de Gutendex con ese título.");
+            return;
+        }
 
         Optional<DatosLibro> libroBuscado = datos.resultados().stream()
                 .filter(l -> l.titulo().toUpperCase().contains(tituloLibro.toUpperCase()))
                 .findFirst();
 
         if(libroBuscado.isPresent()) {
-            System.out.println("Libro encontrado");
-            System.out.println(libroBuscado.get());
+            DatosLibro datosLibro = libroBuscado.get();
+            System.out.println("Libro encontrado en la API:");
+            System.out.println("Título: " + datosLibro.titulo());
+            datosLibro.autores().forEach(a -> System.out.println("Autor: " + a.autor()));
+            // Asegurarse de que la lista de idiomas no esté vacía antes de acceder
+            if (datosLibro.idiomas() != null && !datosLibro.idiomas().isEmpty()) {
+                System.out.println("Idiomas: " + String.join(", ", datosLibro.idiomas()));
+            } else {
+                System.out.println("Idiomas: Desconocido");
+            }
+            System.out.println("Número de descargas: " + datosLibro.numeroDescargas());
+
+            // --- Lógica de persistencia ---
+            Optional<Libro> libroExistente = libroRepositorio.findByTituloIgnoreCase(datosLibro.titulo());
+
+            if (libroExistente.isPresent()) {
+                System.out.println("¡Este libro ya está registrado en la base de datos!");
+            } else {
+                // Crear y guardar el nuevo libro y sus autores
+                Libro nuevoLibro = new Libro();
+                nuevoLibro.setTitulo(datosLibro.titulo());
+                nuevoLibro.setNumeroDescargas(datosLibro.numeroDescargas());
+                if (datosLibro.idiomas() != null && !datosLibro.idiomas().isEmpty()) {
+                    nuevoLibro.setIdioma(datosLibro.idiomas().get(0)); // Tomar el primer idioma disponible
+                } else {
+                    nuevoLibro.setIdioma("Desconocido"); // Asignar un valor por defecto si no hay idioma
+                }
+
+                List<Autor> autoresEntidad = datosLibro.autores().stream()
+                        .map(datosAutor -> {
+                            Optional<Autor> autorExistente = autorRepositorio.findByNombreAutor(datosAutor.autor());
+                            if (autorExistente.isPresent()) {
+                                return autorExistente.get();
+                            } else {
+                                Autor nuevoAutor = new Autor();
+                                nuevoAutor.setNombreAutor(datosAutor.autor());
+                                nuevoAutor.setFechaNacimiento(datosAutor.fechaDeNacimiento());
+                                nuevoAutor.setFechaFallecimiento(datosAutor.fechaDeFallecimiento());
+                                return autorRepositorio.save(nuevoAutor);
+                            }
+                        })
+                        .collect(Collectors.toList());
+
+                nuevoLibro.setAutores(autoresEntidad);
+                libroRepositorio.save(nuevoLibro);
+                System.out.println("Libro y autores guardados exitosamente en la base de datos.");
+            }
         } else {
-            System.out.println("Libro no encontrado");
+            System.out.println("No se encontró un libro que coincida exactamente con el título en los resultados de la API.");
+            System.out.println("Posibles resultados en Gutendex:");
+            datos.resultados().forEach(dl -> System.out.println("- " + dl.titulo() + " por " + dl.autores().stream().map(DatosAutor::autor).collect(Collectors.joining(", "))));
         }
     }
 
