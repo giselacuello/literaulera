@@ -1,11 +1,14 @@
 package com.aluracursos.literalura.principal;
 
+import com.aluracursos.literalura.model.Datos;
+import com.aluracursos.literalura.model.DatosLibro;
 import com.aluracursos.literalura.repository.AutorRepository;
 import com.aluracursos.literalura.repository.LibroRepository;
 import com.aluracursos.literalura.service.ConsumoAPI;
 import com.aluracursos.literalura.service.ConvierteDatos;
 
 import java.util.InputMismatchException;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Principal {
@@ -15,13 +18,12 @@ public class Principal {
     private Scanner teclado = new Scanner(System.in);
 
     private LibroRepository libroRepositorio;
-    private AutorRepository autorRepositorio;
+//    private AutorRepository autorRepositorio;
 
-
-    public Principal(LibroRepository repository, AutorRepository autorRepository) {
-        this.libroRepositorio = repository;
-        this.autorRepositorio = autorRepository;
+    public Principal(LibroRepository libroRepository) {
+        this.libroRepositorio = libroRepository;
     }
+
 
     public void muestraMenu() {
         var opcion = -1;
@@ -70,6 +72,21 @@ public class Principal {
     }
 
     private void buscarLibroPorTitulo() {
+        System.out.println("Ingrese el nombre del libro a buscar");
+        var tituloLibro = teclado.nextLine();
+        var json = consumoAPI.obtenerDatos(URL_BASE + "?search=" +tituloLibro.replace(" ", "+"));
+        var datos = conversor.obtenerDatos(json, Datos.class);
+
+        Optional<DatosLibro> libroBuscado = datos.resultados().stream()
+                .filter(l -> l.titulo().toUpperCase().contains(tituloLibro.toUpperCase()))
+                .findFirst();
+
+        if(libroBuscado.isPresent()) {
+            System.out.println("Libro encontrado");
+            System.out.println(libroBuscado.get());
+        } else {
+            System.out.println("Libro no encontrado");
+        }
     }
 
 }
