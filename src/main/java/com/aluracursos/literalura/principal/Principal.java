@@ -6,8 +6,6 @@ import com.aluracursos.literalura.service.ConsumoAPI;
 import com.aluracursos.literalura.service.ConvierteDatos;
 
 import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 
 public class Principal {
@@ -19,9 +17,6 @@ public class Principal {
     private LibroRepository libroRepositorio;
     private AutorRepository autorRepositorio;
 
-//        private IdiomaRepository idiomaRepositorio;
-    private List<Libro> libros;
-    private Optional<Libro> libroBuscado;
 
     public Principal(LibroRepository repository, AutorRepository autorRepository) {
         this.libroRepositorio = repository;
@@ -72,6 +67,9 @@ public class Principal {
                     System.out.println("Opcion invalida, ingrese un valor valido");
             }
         }
+    }
+
+    private void buscarLibroPorTitulo() {
     }
 
 }
