@@ -76,13 +76,6 @@ public class Principal {
         }
     }
 
-    private void listarLibrosPorIdioma() {
-    }
-
-    private void listarAutoresVivosEnAnio() {
-    }
-
-
     private void buscarLibroPorTitulo() {
         System.out.println("Ingrese el nombre del libro a buscar");
         var tituloLibro = teclado.nextLine();
@@ -220,6 +213,99 @@ public class Principal {
                 System.out.println("-------------------------\n");
             });
         }
+    }
+
+    private void listarAutoresVivosEnAnio() {
+        System.out.println("Ingrese el año para listar autores vivos: ");
+        int anio;
+
+        try {
+            anio = teclado.nextInt();
+            teclado.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Entrada inválida, por favos ingrese un número");
+            teclado.nextLine();
+            return;
+        }
+
+        //Busca todos los autores
+        List<Autor> autores = autorRepositorio.findAllConLibros();
+
+        //Filtra los autores vivos en el año ingresado
+        List<Autor> autoresVivos = autores.stream()
+                .filter(autor -> autor.getFechaNacimiento() != null &&
+                        autor.getFechaNacimiento() <= anio &&
+                        (autor.getFechaFallecimiento() == null || autor.getFechaFallecimiento() > anio))
+                .toList();
+
+        //Muestra los autores y los libros
+        if (autoresVivos.isEmpty()) {
+            System.out.println("No se encontraron autores vivos en el año " + anio);
+        } else {
+            System.out.println("\n---Autores vivos en el año " + anio + "---");
+            autoresVivos.forEach(autor -> {
+                System.out.println("Nombre: " + autor.getNombreAutor());
+                System.out.println("Fecha de nacimiento: " + autor.getFechaNacimiento());
+                System.out.println("Fecha de fallecimiento: " + autor.getFechaFallecimiento());
+
+                List<Libro> libros = autor.getLibros();
+                if (libros != null && !libros.isEmpty()) {
+                    System.out.println("Libros:");
+                    libros.forEach(libro -> System.out.println(" - " + libro.getTitulo()));
+                } else {
+                    System.out.println("Libros: Ninguno registrado");
+                }
+                System.out.println("-------------------------\n");
+            });
+        }
+    }
+
+    private void listarLibrosPorIdioma() {
+        System.out.println(""" 
+                Ingrese el idioma para buscar los libros,, las opciones son: 
+                    - es (Español)
+                    - en (Inglés)
+                    - fr (Francés)
+                    - pt (Portugués)
+                """);
+
+        String idioma = teclado.nextLine().trim().toLowerCase();
+
+        // Validar idioma
+        if (!idioma.equals("es") && !idioma.equals("en") &&
+                !idioma.equals("fr") && !idioma.equals("pt")) {
+            System.out.println("Idioma inválido. Debe ingresar uno de: es, en, fr, pt.");
+            return;
+        }
+
+        //trae los libros con el idioma
+        List<Libro> libros = libroRepositorio.findByIdiomaWithAutores(idioma);
+
+        if (libros.isEmpty()) {
+            System.out.println("No se encontraron libros en el idioma");
+        } else {
+            System.out.println("\n---Libros es idioma: " +idioma+ "---");
+            libros.forEach(libro -> {
+                System.out.println("Título: " + libro.getTitulo());
+
+                //Autores
+                String nombresAutores = libro.getAutores().stream()
+                        .map(Autor::getNombreAutor)
+                        .collect(Collectors.joining(", "));
+                System.out.println("Autores: " + (nombresAutores.isEmpty() ? "Desconocido" : nombresAutores));
+
+                //idioma
+                System.out.println("Idioma: " + libro.getIdioma());
+
+                //Número de descargas
+                System.out.println("Numero de descargas: " +
+                        (libro.getNumeroDescargas() != null ? libro.getNumeroDescargas() : "N/A"));
+                System.out.println("--------------------");
+            });
+
+
+        }
+
     }
 
 }
