@@ -32,10 +32,15 @@ public class Principal {
 
         while(opcion != 0) {
             var menu = """
+                    
+                    ---- Bienvenido a Literalura ----
+                        
+                        Ingrese una opción
+                        
                     1 - Buscar libro por titulo
                     2 - Listar libros registrados
                     3 - Listar autores registrados
-                    4-  Lstar autores vivos en un determinado año
+                    4-  Listar autores vivos en un determinado año
                     5-  Listar libros por idioma
                     
                     0 - Salir
@@ -46,7 +51,7 @@ public class Principal {
                 opcion = teclado.nextInt();
                 teclado.nextLine();
             } catch (InputMismatchException e) {
-                System.out.println("Entrada inválida, por faovr ingrese un número");
+                System.out.println("Entrada inválida, por favor ingrese un número");
                 teclado.nextLine();
                 continue; // vuelve a mostrar el menu
             }
@@ -95,6 +100,7 @@ public class Principal {
             return;
         }
 
+        //Busca libro pero se queda sólo con el primer resultado que encuentra
         Optional<DatosLibro> libroBuscado = datos.resultados().stream()
                 .filter(l -> l.titulo().toUpperCase().contains(tituloLibro.toUpperCase()))
                 .findFirst();
@@ -103,6 +109,8 @@ public class Principal {
             DatosLibro datosLibro = libroBuscado.get();
             System.out.println("Libro encontrado en la API:");
             System.out.println("Título: " + datosLibro.titulo());
+
+            //Imprime el/los autor/es del libro encontrado
             datosLibro.autores().forEach(a -> System.out.println("Autor: " + a.autor()));
 
             // Asegurarse de que la lista de idiomas no esté vacía antes de acceder
@@ -187,7 +195,7 @@ public class Principal {
         if (autores.isEmpty()) {
             System.out.println("No hay autores registrados en la base de datos");
         } else {
-            System.out.println("\n--Autores Registrados--");
+            System.out.println("\n-- Autores Registrados --");
             autores.forEach(autor -> {
                 System.out.println("Nombre: " + autor.getNombreAutor());
 
@@ -198,7 +206,7 @@ public class Principal {
 
                 //Mostrar fecha de fallecimiento (si existe)
                 if (autor.getFechaFallecimiento() != null) {
-                    System.out.println("Fecha de fallecimiento " + autor.getFechaFallecimiento());
+                    System.out.println("Fecha de fallecimiento: " + autor.getFechaFallecimiento());
                 }
 
                 //Mostrar libros
@@ -284,7 +292,7 @@ public class Principal {
         if (libros.isEmpty()) {
             System.out.println("No se encontraron libros en el idioma");
         } else {
-            System.out.println("\n---Libros es idioma: " +idioma+ "---");
+            System.out.println("\n---Libros en idioma: " +idioma+ "---");
             libros.forEach(libro -> {
                 System.out.println("Título: " + libro.getTitulo());
 
