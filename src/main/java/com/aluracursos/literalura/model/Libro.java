@@ -76,4 +76,15 @@ public class Libro {
     public void setIdioma(String idioma) {
         this.idioma = idioma;
     }
+
+    @Override
+    public String toString() {
+        return "Libro{" +
+                "id=" + id +
+                ", titulo='" + titulo + '\'' +
+                ", autores=" + autores +
+                ", idioma='" + idioma + '\'' +
+                ", numeroDescargas=" + numeroDescargas +
+                '}';
+    }
 }
